@@ -1,0 +1,39 @@
+abstract syntax for XML
+
+It's (gonna be) a language that can:
+
+  describe any of a number of  specialized syntaxes (i?) that can be mapped to an xml infoset  (xquery data model)
+
+  provide for the automated construction of 2 way transforms
+
+     an instance in the described syntax -> xquery data model (or xslt 1.0 infoset) 
+        e.g. sax events  (An XMLReader)
+
+     xquery data model -> a serialized instance in the described syntax
+        SAX ContentHangler
+
+
+
+example:
+
+   document  =>  white? decl?  ( comment | white )* element ( element | comment | white ) *
+
+   comment  =>  "//"  [^\n]* '\n'
+
+   element =>  name white? attributes_list? ( ';' | element_content )
+
+   white =>  ( " " | \t | \n | \r )+
+
+   attributes_list => "(" ( white? attribute_assignment )+ white? ")"
+
+   attribute_assignment =>  name  
+
+   element_content => "{" ( characters | comment | element | white )+ "}"
+
+   characters =>  ("\"" [^"]* "\"") | ("\'" [^']* "\'")
+
+   decl  => "//! nXML"
+
+   name => [^\w:=] ( ":" [^\w] ) ?   // non-whitespace char optionally followed by ":" colon and the rest of the name
+
+

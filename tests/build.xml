@@ -1,0 +1,45 @@
+<project name="asx-dest" default="all" basedir="..">
+
+  <!--  
+    | the top of the build directory structure 
+    +-->
+  <property name="top" value="${basedir}" />
+  
+  <!-- 
+       +-->
+  <property name="lib" value="${top}/lib" />
+
+  <target name="all">
+    <echo>running tests</echo>
+
+    <ant target="_asx-test">
+      <property name="src"  value="foo"  /> 
+      <property name="dest" value="bar" /> 
+    </ant>
+
+    <echo>tests were run</echo>
+  </target>
+
+  <target name="clean">
+    
+  </target>
+
+  <!--
+    | Clean out everything but sources
+    +-->
+  <target name="really-clean" depends="clean">
+
+  </target>
+
+
+  <target name="_asx-test" >
+    <java classname="com.blnz.asx.Test" fork="yes">
+      <arg value="${src}"/>
+      <arg value="${dest}" />
+      <classpath>
+        <pathelement path="${lib}/asx.jar" />
+      </classpath>
+    </java>
+  </target>
+
+</project>

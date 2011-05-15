@@ -1,0 +1,271 @@
+<project name="asx" default="all" basedir=".">
+
+  <!-- 
+    |ANT Build targets for compiling sources, generating
+    |documentation and packaging a distribution  
+    +-->
+  
+  <!--  
+    | the top of the build directory structure 
+    +-->
+  <property name="top" value="${basedir}" />
+
+
+  <property name="version" value="0.1" />
+  <!--
+    |
+    +--> 
+  <property name="test-dir" value="${top}/tests" />
+
+
+  <!-- 
+    | the root of source files to be compiled 
+    +-->
+  <property name="src" value="${top}/src" />
+
+  <!-- 
+    | location for placing distribution images 
+    +-->
+  <property name="dist" value="${top}/dist" />
+
+
+  <!--
+      what we call ourselves
+  -->
+  <property name="Name" value="asx" /> 
+
+  <!-- 
+    | target location for the source distribution image  
+    +-->
+  <property name="src-dist-name" value="asx-${version}" />
+
+  <property name="src-dist-dir" value="${dist}/${src-dist-name}" />
+
+  <!-- 
+    | target location for the binary distribution image
+    +-->
+  <property name="bin-dist-name" value="asx-${version}" />
+
+  <property name="bin-dist-dir" value="${dist}/${bin-dist-name}" />
+
+  <!-- 
+    | location for compiling classes into 
+    +-->
+  <property name="stage" value="${top}/stage" />
+
+  <!-- 
+    | the location for compiling documentation into 
+    +-->
+  <property name="docs" value="${stage}/doc" />
+
+  <!-- 
+    |third party jar files get copied to here for compiling phase, then
+    | get copied from here into the distribution image 
+    +-->
+  <property name="lib" value="${top}/lib" />
+
+  <!--
+    | sources for default configuration files which get 
+    | shipped in a distribution 
+    +-->
+  <property name="config" value="${src}/config" /> 
+
+  <!-- 
+    | define which jar files are shipped with a distribution
+    +-->
+  <fileset id="distJars" 
+           dir="${lib}" 
+           includes="*.jar">
+  </fileset>
+  
+  <!--
+    | define which jar files are available during compilation
+    +-->
+  <path id="compileJars" >
+    <fileset dir="${lib}" 
+             includes="*.jar" >
+    </fileset>
+  </path>
+
+  <!-- 
+    | source location of core java files 
+    +-->
+  <property name="asx-java" value="${top}/src/java" />
+
+  <!-- 
+    | source location of documentation files 
+    +-->
+  <property name="docsrc" value="${top}/src/doc" />
+
+  <!-- 
+    | target location for compiling javadoc into 
+    +-->
+  <property name="javadocDir" value="${docs}/api"/>
+
+  <!-- default target -->
+  <target name="help">
+    <echo>Available Ant targets: 'all', 'src-dist', 'bin-dist', 
+    'tests', 'clean', 'really-clean', 'compile', 'docs', 'help'</echo>
+  </target>
+
+
+  <!-- full distribution -->
+  <target name="all" depends="init, src-dist, bin-dist, tests">
+
+  </target>
+
+
+  <!-- source distribution -->
+  <target name="src-dist" 
+          depends="init, compile, docs, bin-dist">
+    <copy todir="${src-dist-dir}" file="${top}/README.txt" />
+    <copy todir="${src-dist-dir}" file="${top}/build.xml" />
+
+    <copy todir="${src-dist-dir}/doc">
+      <fileset dir="${docs}" />
+    </copy>
+
+    <copy todir="${src-dist-dir}/src">
+      <fileset dir="${src}" />
+    </copy>
+
+    <zip destfile="${dist}/${src-dist-name}-src.zip"
+         basedir="${dist}" 
+         includes="${src-dist-name}/**/*.*">
+    </zip>
+    
+  </target>
+
+  <!-- binary distribution -->
+  <target name="bin-dist" 
+          depends="init,  compile, docs">
+
+    <copy todir="${bin-dist-dir}" file="${top}/README.txt" />
+    <copy todir="${bin-dist-dir}" file="${top}/build.xml" />
+    
+    <copy todir="${bin-dist-dir}/doc">
+      <fileset dir="${docs}" />
+    </copy>
+
+    <copy todir="${bin-dist-dir}/lib">
+      <fileset dir="${lib}" />
+    </copy>
+
+    <zip destfile="${dist}/${bin-dist-name}-bin.zip"
+         basedir="${dist}" 
+         includes="${bin-dist-name}/**/*.*">
+    </zip>
+
+  </target>
+
+
+  <!-- 
+    | regression tests 
+    +-->
+  <target name="tests" depends="init, compile">
+    <ant dir="${test-dir}" target="all">
+    </ant>
+  </target>
+
+  <!-- display ant environment -->
+  <target name="env">
+    <echo message="os.name: ${os.name}"/>
+    <echo message="JAVA_HOME: ${ENV.JAVA_HOME}" />
+    <echo message="user.home: ${user.home}" />
+    <echo message="user.dir: ${user.dir}" />
+    <echo message="top: ${top}" />
+    <echo message="dist: ${dist}" />
+    <echo message="ANT_HOME: ${ENV.ANT_HOME}" />
+
+  </target>
+
+  <!--
+    | initializes state of the build, sets some properties
+    | to indicate which of our targets are up to date
+    +-->
+  <target name="init">
+
+    <mkdir dir="${lib}"/>
+
+    <!-- for debugging this build script -->  
+    <echo message="top: ${top}" />
+    <echo message="dist: ${dist}" />
+
+  </target>
+
+
+  <!--
+    | Clean out the staging and distribution directory
+    +-->
+  <target name="clean">
+
+    <delete dir="${stage}" />
+    <delete dir="${dist}" /> 
+   
+    <delete>
+      <fileset dir="${lib}" includes="*.jar"/>
+    </delete>
+
+  </target>
+
+  <!--
+    | Clean out everything but sources
+    +-->
+  <target name="really-clean" depends="clean">
+
+    <delete dir="${lib}" />
+
+  </target>
+
+  <!--
+    | compiles the Java classes and builds fxpl.jar
+    +-->
+  <target name="compile" 
+          depends="_check, init">
+    
+    <echo message="compiling and jarring" />
+
+    <mkdir dir="${stage}/asx" />
+    
+    <!-- compile java code -->
+    <javac debug="on"
+           srcdir="${asx-java}"
+           includeantruntime="false"
+           destdir="${stage}/asx" >
+      
+      <classpath refid="compileJars" />
+      
+    </javac>
+    
+    <!-- bundle up any local properties files -->
+    <copy todir="${stage}/asx" >
+      <fileset dir="${asx-java}" includes='**/*.properties, *.properties, *.xml, **/*.xml' />
+    </copy>
+    
+    <!-- jar it up -->
+    <jar jarfile="${stage}/asx.jar" 
+         basedir="${stage}/asx"
+         includes="**/*" />
+    <copy todir="${lib}" file="${stage}/asx.jar"/>
+  </target>
+  
+  
+  
+  <!--
+      | builds documentation
+      +-->
+  <target name="docs" depends="init" >
+    <copy todir="${docs}">
+      <fileset dir="${docsrc}" />
+    </copy>
+  </target>
+  
+  <!-- 
+    |ensures that preconditions are met
+    +-->
+  <target name="_check">
+
+  </target>
+
+
+</project>
