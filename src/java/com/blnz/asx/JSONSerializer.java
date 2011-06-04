@@ -53,7 +53,7 @@ public class JSONSerializer implements ContentHandler
     }
 
     /**
-     * Filter a new document locator event.
+     * become provisioned with a Locator
      *
      * @param locator The document locator.
      * @see org.xml.sax.ContentHandler#setDocumentLocator
